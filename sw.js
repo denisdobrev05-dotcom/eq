@@ -1,5 +1,5 @@
 /* Service Worker — offline кеш за PWA "Аудио Ефекти" */
-const CACHE = 'audio-efx-v3';
+const CACHE = 'audio-efx-v4';
 const ASSETS = [
   './',
   './index.html',
