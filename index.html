@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+  <title>Аудио Ефекти — Slowed &amp; Sped up + Reverb</title>
+  <meta name="description" content="Лично PWA приложение за аудио ефекти: Slowed + Reverb и Sped up + Reverb, с пресети и ръчни настройки." />
+  <meta name="theme-color" content="#0d0d14" />
+
+  <!-- PWA / iOS home screen -->
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Аудио Ефекти" />
+  <link rel="apple-touch-icon" href="./icons/icon-180.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
+
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div id="app">
+
+    <!-- ============ ЕКРАН 1: ИЗБОР НА РЕЖИМ ============ -->
+    <section class="screen screen--active" id="screen-mode" data-screen="mode">
+      <div class="hero">
+        <div class="hero__logo" aria-hidden="true">
+          <span class="hero__disc"></span>
+        </div>
+        <h1 class="hero__title">Аудио Ефекти</h1>
+        <p class="hero__subtitle">Превърни всяка песен в slowed или sped up версия с reverb — директно в браузъра.</p>
+      </div>
+
+      <div class="mode-grid">
+        <button class="mode-card mode-card--slowed" data-mode="slowed">
+          <span class="mode-card__icon">🌙</span>
+          <span class="mode-card__title">Slowed + Reverb</span>
+          <span class="mode-card__desc">Бавно, дълбоко и мечтателно звучене</span>
+        </button>
+        <button class="mode-card mode-card--sped" data-mode="sped">
+          <span class="mode-card__icon">⚡️</span>
+          <span class="mode-card__title">Sped up + Reverb</span>
+          <span class="mode-card__desc">Бързо, енергично и закачливо</span>
+        </button>
+      </div>
+
+      <p class="disclaimer">
+        Обработката подобрява звученето на твоя файл, но не може да върне качество,
+        което липсва в оригинала.
+      </p>
+    </section>
+
+    <!-- ============ ЕКРАН 2: КАЧВАНЕ НА ФАЙЛ ============ -->
+    <section class="screen" id="screen-upload" data-screen="upload">
+      <header class="topbar">
+        <button class="btn-back" data-action="back-to-mode" aria-label="Назад">←</button>
+        <h2 class="topbar__title" id="upload-mode-label">Качи файл</h2>
+        <span class="topbar__spacer"></span>
+      </header>
+
+      <div class="upload">
+        <label class="dropzone" id="dropzone">
+          <input type="file" id="file-input" accept="audio/*,.mp3,.wav,.m4a" hidden />
+          <span class="dropzone__icon">🎵</span>
+          <span class="dropzone__title">Докосни, за да избереш аудио</span>
+          <span class="dropzone__hint">mp3, wav или m4a</span>
+        </label>
+        <div class="upload__status" id="upload-status" hidden>
+          <div class="spinner"></div>
+          <span id="upload-status-text">Зареждане…</span>
+        </div>
+        <p class="disclaimer disclaimer--small">
+          Файлът се обработва изцяло на устройството ти и не се качва никъде.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ ЕКРАН 3: ПРЕСЕТИ + НАСТРОЙКИ ============ -->
+    <section class="screen" id="screen-studio" data-screen="studio">
+      <header class="topbar">
+        <button class="btn-back" data-action="back-to-upload" aria-label="Назад">←</button>
+        <h2 class="topbar__title" id="studio-mode-label">Студио</h2>
+        <span class="topbar__spacer"></span>
+      </header>
+
+      <div class="studio">
+        <p class="track-name" id="track-name">—</p>
+
+        <!-- Голям кръгъл Play бутон + прогрес -->
+        <div class="player">
+          <button class="play-btn" id="play-btn" aria-label="Възпроизвеждане">
+            <svg class="play-btn__ring" viewBox="0 0 120 120" aria-hidden="true">
+              <circle class="play-btn__track" cx="60" cy="60" r="54" />
+              <circle class="play-btn__progress" id="play-progress" cx="60" cy="60" r="54" />
+            </svg>
+            <span class="play-btn__icon" id="play-icon">▶</span>
+          </button>
+          <div class="time-row">
+            <span id="time-current">0:00</span>
+            <span id="time-total">0:00</span>
+          </div>
+        </div>
+
+        <!-- Пресети -->
+        <h3 class="section-title">Пресети</h3>
+        <div class="presets" id="presets"></div>
+
+        <!-- Ръчни настройки -->
+        <h3 class="section-title">Ръчни настройки</h3>
+        <div class="controls">
+          <div class="control">
+            <div class="control__head">
+              <label for="ctl-speed">Скорост</label>
+              <output id="val-speed">1.00x</output>
+            </div>
+            <input type="range" id="ctl-speed" min="0.5" max="1.5" step="0.01" value="1" />
+          </div>
+
+          <div class="control">
+            <div class="control__head">
+              <label for="ctl-reverb">Reverb (сухо → мокро)</label>
+              <output id="val-reverb">20%</output>
+            </div>
+            <input type="range" id="ctl-reverb" min="0" max="1" step="0.01" value="0.2" />
+          </div>
+
+          <div class="control">
+            <div class="control__head">
+              <label for="ctl-bass">Bass boost</label>
+              <output id="val-bass">+0 dB</output>
+            </div>
+            <input type="range" id="ctl-bass" min="0" max="12" step="0.5" value="0" />
+          </div>
+
+          <div class="control">
+            <div class="control__head">
+              <label for="ctl-loudness">Сила (loudness)</label>
+              <output id="val-loudness">100%</output>
+            </div>
+            <input type="range" id="ctl-loudness" min="0" max="1.5" step="0.01" value="1" />
+          </div>
+
+          <div class="control control--switch">
+            <label for="ctl-comp">Компресор <span class="control__sub">по-плътен, равномерен звук</span></label>
+            <button class="switch" id="ctl-comp" role="switch" aria-checked="false">
+              <span class="switch__knob"></span>
+            </button>
+          </div>
+
+          <h3 class="section-title section-title--eq">Еквалайзер</h3>
+          <div class="eq">
+            <div class="control">
+              <div class="control__head">
+                <label for="ctl-low">Ниски</label>
+                <output id="val-low">+0 dB</output>
+              </div>
+              <input type="range" id="ctl-low" min="-12" max="12" step="0.5" value="0" />
+            </div>
+            <div class="control">
+              <div class="control__head">
+                <label for="ctl-mid">Средни</label>
+                <output id="val-mid">+0 dB</output>
+              </div>
+              <input type="range" id="ctl-mid" min="-12" max="12" step="0.5" value="0" />
+            </div>
+            <div class="control">
+              <div class="control__head">
+                <label for="ctl-high">Високи</label>
+                <output id="val-high">+0 dB</output>
+              </div>
+              <input type="range" id="ctl-high" min="-12" max="12" step="0.5" value="0" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Действия -->
+        <div class="actions">
+          <button class="btn btn--primary" id="save-btn">
+            <span id="save-btn-label">💾 Запази като WAV</span>
+          </button>
+        </div>
+
+        <div class="export-progress" id="export-progress" hidden>
+          <div class="export-progress__bar"><span id="export-bar"></span></div>
+          <span id="export-text">Обработка…</span>
+        </div>
+
+        <p class="disclaimer disclaimer--small">
+          Съвет: настройките се чуват в реално време. Експортът прилага точно
+          същата верига на сигнала към свален WAV файл.
+        </p>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Toast съобщения -->
+  <div class="toast" id="toast" hidden></div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
