@@ -88,13 +88,23 @@
 
         <!-- Голям кръгъл Play бутон + прогрес -->
         <div class="player">
-          <button class="play-btn" id="play-btn" aria-label="Възпроизвеждане">
-            <svg class="play-btn__ring" viewBox="0 0 120 120" aria-hidden="true">
-              <circle class="play-btn__track" cx="60" cy="60" r="54" />
-              <circle class="play-btn__progress" id="play-progress" cx="60" cy="60" r="54" />
-            </svg>
-            <span class="play-btn__icon" id="play-icon">▶</span>
-          </button>
+          <div class="player__controls">
+            <button class="skip-btn" id="skip-back" aria-label="Назад 5 секунди">
+              <span class="skip-btn__icon">⟲</span>
+              <span class="skip-btn__num">5</span>
+            </button>
+            <button class="play-btn" id="play-btn" aria-label="Възпроизвеждане">
+              <svg class="play-btn__ring" viewBox="0 0 120 120" aria-hidden="true">
+                <circle class="play-btn__track" cx="60" cy="60" r="54" />
+                <circle class="play-btn__progress" id="play-progress" cx="60" cy="60" r="54" />
+              </svg>
+              <span class="play-btn__icon" id="play-icon">▶</span>
+            </button>
+            <button class="skip-btn" id="skip-fwd" aria-label="Напред 5 секунди">
+              <span class="skip-btn__icon">⟳</span>
+              <span class="skip-btn__num">5</span>
+            </button>
+          </div>
           <div class="time-row">
             <span id="time-current">0:00</span>
             <span id="time-total">0:00</span>

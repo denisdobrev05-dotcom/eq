@@ -168,12 +168,26 @@ function rebuildLiveGraph(offset) {
   src.start(0, offset);
 }
 
-function stopSource() {
-  if (sourceNode) {
-    try { sourceNode.onended = null; sourceNode.stop(); } catch (e) {}
-    try { sourceNode.disconnect(); } catch (e) {}
-    sourceNode = null;
+function stopSource(graceful) {
+  if (!sourceNode) return;
+  const src = sourceNode;
+  src.onended = null;
+  if (graceful && audioCtx && nodes && nodes.loudness) {
+    // кратък fade-out, за да няма щракане/пукот при спиране
+    const now = audioCtx.currentTime;
+    try {
+      const g = nodes.loudness.gain;
+      g.cancelScheduledValues(now);
+      g.setValueAtTime(g.value, now);
+      g.linearRampToValueAtTime(0.0001, now + 0.05);
+    } catch (e) {}
+    try { src.stop(now + 0.06); } catch (e) {}
+    setTimeout(() => { try { src.disconnect(); } catch (e) {} }, 140);
+  } else {
+    try { src.stop(); } catch (e) {}
+    try { src.disconnect(); } catch (e) {}
   }
+  sourceNode = null;
 }
 
 function getPosition() {
@@ -198,7 +212,7 @@ function stopPlayback(reachedEnd) {
     state.startOffset = reachedEnd ? 0 : getPosition();
   }
   state.playing = false;
-  stopSource();
+  stopSource(true);
   cancelAnimationFrame(rafId);
   updatePlayUI();
   updateProgressUI();
@@ -207,6 +221,32 @@ function stopPlayback(reachedEnd) {
 function togglePlay() {
   if (state.playing) stopPlayback(false);
   else startPlayback();
+}
+
+/* Прескачане напред/назад с дадена разлика в секунди (±5s). */
+function seekBy(delta) {
+  if (!state.audioBuffer) return;
+  const dur = state.audioBuffer.duration;
+  let pos = getPosition() + delta;
+  pos = Math.max(0, Math.min(pos, dur));
+  if (state.playing) {
+    startPlaybackFrom(pos);
+  } else {
+    state.startOffset = pos;
+    updateProgressUI();
+  }
+}
+
+/* Извиква се при напускане/скриване на приложението — спира меко звука. */
+function handleLeave() {
+  const wasPlaying = state.playing;
+  if (wasPlaying) stopPlayback(false);   // мек fade-out, без пукот
+  // изчакай fade-а да приключи, преди да приспим контекста
+  setTimeout(() => {
+    if (audioCtx && audioCtx.state === 'running') {
+      audioCtx.suspend().catch(() => {});
+    }
+  }, wasPlaying ? 120 : 0);
 }
 
 /* Прилага текущите настройки към живите нодове в реално време. */
@@ -563,6 +603,10 @@ function bindEvents() {
   // Play / Pause
   $('play-btn').addEventListener('click', togglePlay);
 
+  // Прескачане ±5 секунди
+  $('skip-back').addEventListener('click', () => seekBy(-5));
+  $('skip-fwd').addEventListener('click', () => seekBy(5));
+
   // Плъзгачи
   const bind = (id, key, parse) => {
     const el = $(id);
@@ -595,10 +639,12 @@ function bindEvents() {
   // Запази
   $('save-btn').addEventListener('click', exportWav);
 
-  // Пауза при скриване на таба
+  // Авто-пауза при напускане/скриване на приложението (без пукот при изход)
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden && state.playing) stopPlayback(false);
+    if (document.hidden) handleLeave();
   });
+  window.addEventListener('pagehide', handleLeave);
+  window.addEventListener('blur', handleLeave);
 }
 
 /* ---------------------- Service Worker ---------------------- */
