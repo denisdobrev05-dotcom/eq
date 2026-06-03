@@ -213,15 +213,6 @@ body {
   width: 30px; height: 30px;
   display: block;
 }
-.skip-btn__num {
-  position: absolute;
-  left: 50%; top: 56%;
-  transform: translate(-50%, -50%);
-  font-size: 10px; font-weight: 800;
-  letter-spacing: -.5px;
-  color: var(--text);
-  pointer-events: none;
-}
 .play-btn {
   position: relative;
   width: 132px; height: 132px;
